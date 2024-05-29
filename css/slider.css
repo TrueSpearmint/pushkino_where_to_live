@@ -1,0 +1,74 @@
+.slider-label {
+  margin-left: 20px; /* отступ от края меню */
+  margin-bottom: 12px; /* расстояние между слайдером и подписями */
+}
+
+.slider-container {
+  margin-bottom: 50px; /* отступ между слайдерами */
+}
+
+.slider-container {
+  width: 98%; /* ширина всего контейнера слайдера */
+  position: relative;
+  text-align: center; /* выравниваем по центру */
+}
+.slider {
+  -webkit-appearance: none; /* удаляет стандартные стили для элемента в браузерах, использующих движок WebKit (Safari и Chrome) */
+  appearance: none; /* удаляет стандартные стили для элемента в браузерах */
+  width: calc(100% - 40px); /* 100% ширины экрана, но минимум оставить 40px по бокам */
+  height: 10px; /* толщина слайдера */
+  border-radius: 5px; /* закругление краёв */
+  background: #ddd; /* цвет слайдера */
+  outline: none; /* отсутсвие обводки */
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+.slider::-webkit-slider-thumb {
+  /* Настройки для движка WebKit (Safari и Chrome), чтобы не использовались его стандартные настройки */
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2cafe3;
+  cursor: pointer;
+}
+.slider::-moz-range-thumb {
+  /* Настройки для движка Gecko (Firefox), чтобы не использовались его стандартные настройки */
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2cafe3;
+  cursor: pointer;
+}
+.slider-ticks {
+  /* Настройки всего блока рисок и значений*/
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  width: calc(99% - 40px);
+  top: 25px; /* отодвигаем риски от слайдера */
+  left: 25px;
+  font-family: "Arial", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+.slider-tick {
+  /* Настройки отдельной риски относительно значений */
+  position: relative;
+}
+/*
+.slider-tick::after {
+  content: "";
+  position: absolute;
+  top: -10px; /* отступ между риской и значениием */
+  left: 50%; /* сдвиг риски к значениию */
+  transform: translateX(-50%);
+  width: 1px; /* толщина рисок */
+  height: 10px; /* высота рисок */
+  background-color: #4c4c4c; /* цвет рисок */
+}
+*/
+

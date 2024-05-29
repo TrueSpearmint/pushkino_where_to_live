@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pushkino_where_to_live</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+    <link href="css/enterpopup.css" rel="stylesheet" />
+    <link href="css/legend.css" rel="stylesheet" />
+    <link href="css/controlsModified.css" rel="stylesheet" />
+    <link href="css/burgermenu.css" rel="stylesheet" />
+    <link href="css/slider.css" rel="stylesheet" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+  </head>
+  <body>
+    <!-- Блок приветственного окна -->
+    <div id="enterpopup" class="enterpopup">
+      <div class="enterpopup-content">
+        <p>
+          <b>Прочтите перед использованием.</b>
+          <br />
+          <br />Вас приветствует сайт <b>"Где в Пушкино жить лучше?" </b><br /><br />Обратите
+          внимание на название! Не "хорошо" или "комфортно", а "лучше". <br /><br />
+          Данный сайт позволяет вам сравнить условия проживания в разных микрорайонах и домах на
+          основе ряда показателей, представленных в меню слева. По своему усмотрению данным
+          показателям вы можете задать коэффициент значимости от 0 до 10, где:<br /><i>
+            0 – показатель не учитывается, 1 – минимальная важность, 10 – максимальная важность.</i
+          >
+          <br />В зависимости от проставленных вами значений итоговый результат изменится.<br /><br />
+          Пару слов о том, почему показатели выглядят именно так, как они выглядят. <br />Все
+          показатели, связанные с доступностью – это наличие определенных объектов поблизости.
+          Важную роль играет наличие объектов в радиусе 15 минут пешком. <br />Состояние жилищного
+          фонда – это показатель, основанный на возрасте дома и материалах, из которых он сделан.<br />
+          Показатели доступности Ростокино – соответственно скорость, с которой можно добраться до
+          остановки "МЦК Ростокино", но переведенная в баллы. <br /><br />Если вы хотите повысить
+          точность карты, то приглашаю вас к редактированию
+          <a href="https://www.openstreetmap.org">OpenStreetMap</a>. Подробнее об этом можно
+          прочитать <a href="https://habr.com/ru/companies/vk/articles/542522/">здесь</a>.
+        </p>
+        <button class="close-button" onclick="hidePopup()">Закрыть</button>
+      </div>
+    </div>
+    <!-- Блок карты -->
+    <div id="map"></div>
+    <!-- Легенда -->
+    <div id="legend" class="legend">
+      <div id="legend-text"><span>Качество городской среды в баллах для каждого дома</span></div>
+      <div id="gradient"></div>
+      <div class="labels">
+        <span>1</span>
+        <span>10</span>
+        <span>20</span>
+        <span>30</span>
+        <span>40</span>
+        <span>50</span>
+        <span>60</span>
+        <span>70</span>
+        <span>80</span>
+        <span>90</span>
+        <span>100</span>
+      </div>
+    </div>
+    <!-- Блок бургер-меню -->
+    <div class="hamburger-menu">
+      <input id="menu_toggle" type="checkbox" checked />
+      <label class="menu_btn" for="menu_toggle">
+        <span></span>
+      </label>
+      <ul class="menu_box">
+        <div class="update-button" onclick="updateMap()">
+          Нажмите, чтобы обновить карту с учётом коэффициентов ниже
+        </div>
+        <li>
+          <p class="slider-label">Доступность государственных школ</p>
+          <div class="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value="1"
+              step="1"
+              class="slider"
+              id="slider-1"
+              oninput="updateSchoolsCoefficient(this.value)"
+            />
+            <div class="slider-ticks" id="slider-ticks-1"></div>
+          </div>
+        </li>
+        <li>
+          <p class="slider-label">Доступность государственных детских садов</p>
+          <div class="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value="1"
+              step="1"
+              class="slider"
+              id="slider-2"
+              oninput="updateKindergartensCoefficient(this.value)"
+            />
+            <div class="slider-ticks" id="slider-ticks-2"></div>
+          </div>
+        </li>
+        <li>
+          <p class="slider-label">Доступность государственных и частных поликлиник</p>
+          <div class="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value="1"
+              step="1"
+              class="slider"
+              id="slider-3"
+              oninput="updateClinicsCoefficient(this.value)"
+            />
+            <div class="slider-ticks" id="slider-ticks-3"></div>
+          </div>
+        </li>
+        <li>
+          <p class="slider-label">Доступность предприятий торговли и услуг</p>
+          <div class="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value="1"
+              step="1"
+              class="slider"
+              id="slider-6"
+              oninput="updateCommerceCoefficient(this.value)"
+            />
+            <div class="slider-ticks" id="slider-ticks-6"></div>
+          </div>
+        </li>
+        <li>
+          <p class="slider-label">Доступность фитнес-центров</p>
+          <div class="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value="1"
+              step="1"
+              class="slider"
+              id="slider-4"
+              oninput="updateFitnessCoefficient(this.value)"
+            />
+            <div class="slider-ticks" id="slider-ticks-4"></div>
+          </div>
+        </li>
+        <li>
+          <p class="slider-label">Доступность прогулочных зон у воды</p>
+          <div class="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value="1"
+              step="1"
+              class="slider"
+              id="slider-5"
+              oninput="updateWaterwalkCoefficient(this.value)"
+            />
+            <div class="slider-ticks" id="slider-ticks-5"></div>
+          </div>
+        </li>
+        <hr />
+        <li>
+          <p class="slider-label">Состояние жилищного фонда</p>
+          <div class="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value="1"
+              step="1"
+              class="slider"
+              id="slider-7"
+              oninput="updateBuildingsQualityCoefficient(this.value)"
+            />
+            <div class="slider-ticks" id="slider-ticks-7"></div>
+          </div>
+        </li>
+        <hr />
+        <li>
+          <p class="slider-label">Доступность остановки Ростокино на машине</p>
+          <div class="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value="1"
+              step="1"
+              class="slider"
+              id="slider-8"
+              oninput="updateRostokinoCarCoefficient(this.value)"
+            />
+            <div class="slider-ticks" id="slider-ticks-8"></div>
+          </div>
+        </li>
+        <li>
+          <p class="slider-label">Доступность остановки Ростокино на автобусах</p>
+          <div class="slider-container">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              value="1"
+              step="1"
+              class="slider"
+              id="slider-8"
+              oninput="updateRostokinoBusCoefficient(this.value)"
+            />
+            <div class="slider-ticks" id="slider-ticks-8"></div>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <!-- Панель атрибутов -->
+    <div id="attribution-block">
+      <a href="https://forms.yandex.ru/u/6652224a50569097e782ef64" target="_blank"
+        >Форма обратной связи</a
+      >
+      |
+      <a href="https://github.com/TrueSpearmint/pushkino_where_to_live" target="_blank">GitHub</a> |
+      Источники: <a href="https://rosreestr.gov.ru" target="_blank">Росреестр</a>,
+      <a href="https://rgis.mosreg.ru" target="_blank">Геопортал Подмосковья</a>,
+      <a href="https://фрт.рф" target="_blank">Фонд развития территорий</a>,
+      <a href="https://www.openstreetmap.org" target="_blank">© OpenStreetMap contributors</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      // Приветственное окно
+      function showPopup() {
+        // функция показа стартоввого окна
+        document.getElementById("enterpopup").style.display = "block";
+      }
+      function hidePopup() {
+        // функция сокрытия стартоввого окна
+        document.getElementById("enterpopup").style.display = "none";
+      }
+      window.onload = function () {
+        // показать окно при загрузке страницы
+        showPopup();
+      };
+
+      // Скрыть боковое меню на маленьких экранах
+      document.addEventListener("DOMContentLoaded", function () {
+        const menuToggle = document.getElementById("menu_toggle");
+        if (window.innerWidth <= 768) {
+          menuToggle.checked = false;
+        }
+      });
+
+      // Инициализируем карту
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoidHJ1ZXNwZWFybWludCIsImEiOiJjbHVpbDl1bXcwNTg1MmltdjI2NmpsNXdpIn0.hTURiBYjIAijbKZnfQPdrg";
+      var map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/truespearmint/clwdyudtl00as01pn8hxx5cy5",
+        center: [37.847164, 56.011318],
+        zoom: 11.7,
+        maxBounds: [
+          [35.579062, 54.461946],
+          [39.876909, 57.567873],
+        ],
+      });
+
+      // Задаём функции для загрузки локальных geojson (https://docs.mapbox.com/mapbox-gl-js/example/external-geojson/)
+      async function addGeoJson_centroids() {
+        const responseGeojson = await fetch("where_to_live_score_centroids.geojson");
+        const responseJson = await responseGeojson.json();
+        return responseJson;
+      }
+      async function addGeoJson() {
+        const responseGeojson = await fetch("where_to_live_score.geojson");
+        const responseJson = await responseGeojson.json();
+        return responseJson;
+      }
+
+      // Добавление стартовых слоёв и панелей управления и атрибутов
+      map.on("load", async function () {
+        // Граница Пушкино, подгружаемая с Mapbox
+        map.addSource("boundary_pushkino_osm", {
+          type: "vector",
+          url: "mapbox://truespearmint.4r1fv8fg",
+        });
+        map.addLayer({
+          id: "boundary_pushkino_osm_id",
+          type: "line",
+          source: "boundary_pushkino_osm",
+          "source-layer": "boundary_pushkino_osm-asartc",
+          layout: { visibility: "visible" },
+          paint: {
+            "line-color": "#ec8888",
+            "line-opacity": 1.0,
+          },
+        });
+        // Добавление центроидов домов из mapbox
+        map.addSource("mapbox_where_to_live_score_centroids", {
+          type: "vector",
+          url: "mapbox://truespearmint.754sapeg",
+        });
+        map.addLayer(
+          {
+            id: "mapbox_where_to_live_score_centroids_id",
+            type: "circle",
+            source: "mapbox_where_to_live_score_centroids",
+            "source-layer": "where_to_live_score_centroids-4ng6qc",
+            layout: { visibility: "visible" },
+            minzoom: 11.5,
+            maxzoom: 14,
+            paint: {
+              "circle-color": [
+                "interpolate",
+                ["linear"],
+                ["get", "summary_score"],
+                1,
+                "#8b0a2b", // Диапазон 1-10
+                10,
+                "#d53e4f",
+                20,
+                "#f46d43",
+                30,
+                "#fdae61",
+                40,
+                "#fee08b",
+                50,
+                "#def084",
+                60,
+                "#abdda4",
+                70,
+                "#66c2a5",
+                80,
+                "#3c9cd7",
+                90,
+                "#a75fc4", // Диапазон 90-100
+              ],
+              "circle-opacity": 1.0,
+            },
+          },
+          "settlement-subdivision-label" // разместить слой под подписями НП
+        );
+        // Добавление полигонов домов из mapbox
+        map.addSource("mapbox_where_to_live_score", {
+          type: "vector",
+          url: "mapbox://truespearmint.0lopplnv",
+        });
+        map.addLayer({
+          id: "mapbox_where_to_live_score_id",
+          type: "fill-extrusion",
+          source: "mapbox_where_to_live_score",
+          "source-layer": "where_to_live_score-c7zng8",
+          layout: { visibility: "visible" },
+          minzoom: 14,
+          paint: {
+            "fill-extrusion-color": [
+              "interpolate",
+              ["linear"],
+              ["get", "summary_score"],
+              1,
+              "#8b0a2b",
+              10,
+              "#d53e4f",
+              20,
+              "#f46d43",
+              30,
+              "#fdae61",
+              40,
+              "#fee08b",
+              50,
+              "#def084",
+              60,
+              "#abdda4",
+              70,
+              "#66c2a5",
+              80,
+              "#3c9cd7",
+              90,
+              "#a75fc4",
+            ],
+            "fill-extrusion-height": [
+              "step",
+              ["zoom"],
+              0,
+              14,
+              [
+                "match",
+                ["typeof", ["get", "height_processed"]],
+                "number",
+                ["get", "height_processed"],
+                0,
+              ],
+            ],
+          },
+        });
+        // Отображение в виде гексагонов
+        // Загружаем geojson для отображения в виде гексагонов
+        const geojsonData_centroids_start = await addGeoJson_centroids();
+        // Задание параметров сетки гексагонов
+        const bbox = [37.78161030069852, 55.964873750250895, 37.94086027868726, 56.06021843029652]; // +- равно turf.bbox(geojsonData_centroids_start)
+        const cellSize = 0.25;
+        const options = { units: "kilometers" };
+        const hexagons = turf.hexGrid(bbox, cellSize, options);
+        // Сбор точек по гексагонам
+        const clusteredPoints_start = turf.collect(
+          hexagons,
+          geojsonData_centroids_start,
+          "summary_score",
+          "hex_values"
+        );
+        // Вычисление среднего значения для каждого гексагона
+        clusteredPoints_start.features.forEach((hex) => {
+          const values = hex.properties.hex_values;
+          if (values && values.length > 0) {
+            const sum = values.reduce((acc, val) => acc + val, 0);
+            const avg = sum / values.length;
+            hex.properties.average_value = avg;
+          } else {
+            hex.properties.average_value = 0; // Или другое значение по умолчанию, если нет значений
+          }
+        });
+        // Добавление обобщённых по гексагонам данных на карту
+        map.addSource("hexagons_start", {
+          type: "geojson",
+          data: clusteredPoints_start,
+        });
+        // Добавление слоя для визуализации гексагонов
+        map.addLayer(
+          {
+            id: "hexagons_start_id",
+            type: "fill",
+            source: "hexagons_start",
+            minzoom: 0,
+            maxzoom: 11.5,
+            paint: {
+              "fill-color": [
+                "interpolate",
+                ["linear"],
+                ["get", "average_value"],
+                0,
+                ["rgba", 0, 0, 0, 0.0], // скрытие гексагонов со значеним 0
+                1,
+                "#8b0a2b",
+                10,
+                "#d53e4f",
+                20,
+                "#f46d43",
+                30,
+                "#fdae61",
+                40,
+                "#fee08b",
+                50,
+                "#def084",
+                60,
+                "#abdda4",
+                70,
+                "#66c2a5",
+                80,
+                "#3c9cd7",
+                90,
+                "#a75fc4",
+              ],
+              "fill-opacity": 1.0,
+            },
+          },
+          "settlement-subdivision-label"
+        );
+
+        // Получаем элемент панели атрибутов и удаляем его
+        var attributionControl = document.querySelector(".mapboxgl-ctrl-attrib");
+        attributionControl.parentNode.removeChild(attributionControl);
+        // Создаём новую панель атрибутов, но с дополнительными данными
+        map.addControl(
+          new mapboxgl.AttributionControl({
+            customAttribution: document.getElementById("attribution-block").innerHTML,
+          })
+        );
+
+        // Добавляем кнопку геолокации
+        map.addControl(
+          new mapboxgl.GeolocateControl({
+            positionOptions: {
+              enableHighAccuracy: true,
+            },
+            // When active the map will receive updates to the device's location as it changes.
+            trackUserLocation: true,
+            // Draw an arrow next to the location dot to indicate which direction the device is heading.
+            showUserHeading: true,
+          })
+        );
+
+        // Добавление пользовательского контрола на карту. Пользовательский, потому что необходимо возвращать не только исходный угол, но и наклон
+        const customNavControl = new CustomNavigationControl();
+        map.addControl(customNavControl, "top-right");
+
+        // Добавление нежилых домов из mapbox
+        map.addSource("mapbox_buildings_nonresidental", {
+          type: "vector",
+          url: "mapbox://truespearmint.1kficta3",
+        });
+        map.addLayer({
+          id: "mapbox_buildings_nonresidental_id",
+          type: "fill-extrusion",
+          source: "mapbox_buildings_nonresidental",
+          "source-layer": "buildnigs_pushkino_nonresiden-89htez",
+          layout: { visibility: "visible" },
+          minzoom: 14,
+          paint: {
+            "fill-extrusion-color": "#e8e8e8",
+            "fill-extrusion-height": [
+              "step",
+              ["zoom"],
+              0,
+              14,
+              [
+                "match",
+                ["typeof", ["get", "height_processed"]],
+                "number",
+                ["get", "height_processed"],
+                0,
+              ],
+            ],
+          },
+        });
+      });
+
+      // Функция по обновлению карты с учётом коэффициентов
+      async function updateMap() {
+        // Обновим значения центроидов
+        const geojsonData_centroids = await addGeoJson_centroids(); // вызов функции для получения GeoJSON данных, но после завершения Promise
+        const features_centroids = geojsonData_centroids.features; // получаем массив объектов feature
+        // Шаг 1: Расчет значений summary для каждого объекта
+        const updatedFeaturesWithSummary_centroids = features_centroids.map((feature) => {
+          // Создаём массив аналогичный прошлому, но с измённными атрибутами для центроидов
+          return {
+            ...feature,
+            properties: {
+              ...feature.properties,
+              summary:
+                feature.properties.schools_score * schools_coefficient +
+                feature.properties.kindergartens_score * kindergartens_coefficient +
+                feature.properties.clinics_score * clinics_coefficient +
+                feature.properties.commerce_score * commerce_coefficient +
+                feature.properties.fitness_score * fitness_coefficient +
+                feature.properties.waterwalk_score * waterwalk_coefficient +
+                feature.properties.buildings_quality_score * buildings_quality_coefficient +
+                feature.properties.rostokino_car_score * rostokino_car_coefficient +
+                feature.properties.rostokino_bus_score * rostokino_bus_coefficient,
+            },
+          };
+        });
+        // Шаг 2: Найти минимальное и максимальное значение summary
+        const summaries_centroids = updatedFeaturesWithSummary_centroids.map(
+          (feature) => feature.properties.summary
+        );
+        const summary_min_centroids = Math.min(...summaries_centroids);
+        const summary_max_centroids = Math.max(...summaries_centroids);
+        // Шаг 3: Расчет значения summary_score для каждого объекта
+        const updatedFeaturesWithSummaryScore_centroids = updatedFeaturesWithSummary_centroids.map(
+          (feature) => {
+            const summary = feature.properties.summary;
+            const summary_score =
+              ((summary - summary_min_centroids) /
+                (summary_max_centroids - summary_min_centroids)) *
+                99 +
+              1;
+            return {
+              ...feature,
+              properties: {
+                ...feature.properties,
+                summary_score: summary_score,
+              },
+            };
+          }
+        );
+
+        // Повторим тоже самое для домов
+        const geojsonData = await addGeoJson();
+        const features = geojsonData.features;
+        const updatedFeaturesWithSummary = features.map((feature) => {
+          return {
+            ...feature,
+            properties: {
+              ...feature.properties,
+              summary:
+                feature.properties.schools_score * schools_coefficient +
+                feature.properties.kindergartens_score * kindergartens_coefficient +
+                feature.properties.clinics_score * clinics_coefficient +
+                feature.properties.commerce_score * commerce_coefficient +
+                feature.properties.fitness_score * fitness_coefficient +
+                feature.properties.waterwalk_score * waterwalk_coefficient +
+                feature.properties.buildings_quality_score * buildings_quality_coefficient +
+                feature.properties.rostokino_car_score * rostokino_car_coefficient +
+                feature.properties.rostokino_bus_score * rostokino_bus_coefficient,
+            },
+          };
+        });
+        const summaries = updatedFeaturesWithSummary.map((feature) => feature.properties.summary);
+        const summary_min = Math.min(...summaries);
+        const summary_max = Math.max(...summaries);
+        const updatedFeaturesWithSummaryScore = updatedFeaturesWithSummary.map((feature) => {
+          const summary = feature.properties.summary;
+          const summary_score = ((summary - summary_min) / (summary_max - summary_min)) * 99 + 1;
+          return {
+            ...feature,
+            properties: {
+              ...feature.properties,
+              summary_score: summary_score,
+            },
+          };
+        });
+
+        // Удалим начальный слой с центроидами из Mapbox
+        if (map.getLayer("mapbox_where_to_live_score_centroids_id")) {
+          map.removeLayer("mapbox_where_to_live_score_centroids_id");
+        }
+        // Удалим начальный слой с домами из Mapbox
+        if (map.getLayer("mapbox_where_to_live_score_id")) {
+          map.removeLayer("mapbox_where_to_live_score_id");
+        }
+        // Удалим начальный слой с гексагонами
+        if (map.getLayer("hexagons_start_id")) {
+          map.removeLayer("hexagons_start_id");
+        }
+        // Удалим предыдущий пересчитанный слой с центроидами
+        if (map.getLayer("where_to_live_centroids_updated_id")) {
+          map.removeLayer("where_to_live_centroids_updated_id");
+        }
+        // Удалим предыдущий пересчитанный слой с домами
+        if (map.getLayer("where_to_live_updated_id")) {
+          map.removeLayer("where_to_live_updated_id");
+        }
+        // Удалим предыдущий пересчитанный слой с гексагонами
+        if (map.getLayer("hexagons_updated_id")) {
+          map.removeLayer("hexagons_updated_id");
+        }
+        // Удалим начальный источник с центроидами из Mapbox
+        if (map.getSource("mapbox_where_to_live_score_centroids")) {
+          map.removeSource("mapbox_where_to_live_score_centroids");
+        }
+        // Удалим начальный источник с домами из Mapbox
+        if (map.getSource("mapbox_where_to_live_score")) {
+          map.removeSource("mapbox_where_to_live_score");
+        }
+        // Удалим начальный источник с гексагонами
+        if (map.getSource("hexagons_start")) {
+          map.removeSource("hexagons_start");
+        }
+        // Удалим прошлый пересчитанный geojson с центроидами
+        if (map.getSource("where_to_live_centroids_updated")) {
+          map.removeSource("where_to_live_centroids_updated");
+        }
+        // Удалим прошлый пересчитанный geojson с домами
+        if (map.getSource("where_to_live_updated")) {
+          map.removeSource("where_to_live_updated");
+        }
+        // Удалим прошлый пересчитанный источник с гексагонами
+        if (map.getSource("hexagons_updated")) {
+          map.removeSource("hexagons_updated");
+        }
+
+        // Добавим обновлённые слои
+        // Добавим обновлённый слой центроидов
+        map.addSource("where_to_live_centroids_updated", {
+          type: "geojson",
+          data: {
+            type: "FeatureCollection",
+            features: updatedFeaturesWithSummaryScore_centroids,
+          },
+        });
+        map.addLayer(
+          {
+            id: "where_to_live_centroids_updated_id",
+            type: "circle",
+            source: "where_to_live_centroids_updated",
+            layout: { visibility: "visible" },
+            minzoom: 11.5,
+            maxzoom: 14,
+            paint: {
+              "circle-color": [
+                "interpolate",
+                ["linear"],
+                ["get", "summary_score"],
+                1,
+                "#8b0a2b",
+                10,
+                "#d53e4f",
+                20,
+                "#f46d43",
+                30,
+                "#fdae61",
+                40,
+                "#fee08b",
+                50,
+                "#def084",
+                60,
+                "#abdda4",
+                70,
+                "#66c2a5",
+                80,
+                "#3c9cd7",
+                90,
+                "#a75fc4",
+              ],
+              "circle-opacity": 1.0,
+            },
+          },
+          "settlement-subdivision-label"
+        );
+        // Добавим обновлённый слой домов
+        map.addSource("where_to_live_updated", {
+          type: "geojson",
+          data: {
+            type: "FeatureCollection",
+            features: updatedFeaturesWithSummaryScore,
+          },
+        });
+        map.addLayer({
+          id: "where_to_live_updated_id",
+          type: "fill-extrusion",
+          source: "where_to_live_updated",
+          layout: { visibility: "visible" },
+          minzoom: 14,
+          paint: {
+            "fill-extrusion-color": [
+              "interpolate",
+              ["linear"],
+              ["get", "summary_score"],
+              1,
+              "#8b0a2b",
+              10,
+              "#d53e4f",
+              20,
+              "#f46d43",
+              30,
+              "#fdae61",
+              40,
+              "#fee08b",
+              50,
+              "#def084",
+              60,
+              "#abdda4",
+              70,
+              "#66c2a5",
+              80,
+              "#3c9cd7",
+              90,
+              "#a75fc4",
+            ],
+            "fill-extrusion-height": [
+              "step",
+              ["zoom"],
+              0,
+              14,
+              [
+                "match",
+                ["typeof", ["get", "height_processed"]],
+                "number",
+                ["get", "height_processed"],
+                0,
+              ],
+            ],
+          },
+        });
+        // Отображение в виде гексагонов
+        // Задание параметров сетки гексагонов
+        const bbox = [37.78161030069852, 55.964873750250895, 37.94086027868726, 56.06021843029652];
+        const cellSize = 0.25;
+        const options = { units: "kilometers" };
+        const hexagons = turf.hexGrid(bbox, cellSize, options);
+        // Соберём фичи в коллекцию, чтобы передать turf.collect
+        const updatedGeoJson = {
+          type: "FeatureCollection",
+          features: updatedFeaturesWithSummaryScore_centroids,
+        };
+        // Сбор точек по гексагонам
+        const clusteredPoints = turf.collect(
+          hexagons,
+          updatedGeoJson,
+          "summary_score",
+          "hex_values"
+        );
+        // Вычисление среднего значения для каждого гексагона
+        clusteredPoints.features.forEach((hex) => {
+          const values = hex.properties.hex_values;
+          if (values && values.length > 0) {
+            const sum = values.reduce((acc, val) => acc + val, 0);
+            const avg = sum / values.length;
+            hex.properties.average_value = avg;
+          } else {
+            hex.properties.average_value = 0; // Или другое значение по умолчанию, если нет значений
+          }
+        });
+        // Добавление обновлённых обобщённых по гексагонам данных на карту
+        map.addSource("hexagons_updated", {
+          type: "geojson",
+          data: clusteredPoints,
+        });
+        // Добавление слоя для визуализации обновлённых обобщённых данных
+        map.addLayer(
+          {
+            id: "hexagons_updated_id",
+            type: "fill",
+            source: "hexagons_updated",
+            minzoom: 0,
+            maxzoom: 11.5,
+            paint: {
+              "fill-color": [
+                "interpolate",
+                ["linear"],
+                ["get", "average_value"],
+                0,
+                ["rgba", 0, 0, 0, 0.0],
+                1,
+                "#8b0a2b",
+                10,
+                "#d53e4f",
+                20,
+                "#f46d43",
+                30,
+                "#fdae61",
+                40,
+                "#fee08b",
+                50,
+                "#def084",
+                60,
+                "#abdda4",
+                70,
+                "#66c2a5",
+                80,
+                "#3c9cd7",
+                90,
+                "#a75fc4",
+              ],
+              "fill-opacity": 1.0,
+            },
+          },
+          "settlement-subdivision-label"
+        );
+      }
+    </script>
+    <!-- Панель controls -->
+    <script src="js/controlsModified.js"></script>
+    <!-- Слайдер -->
+    <script src="js/updateCoefficient.js"></script>
+    <script src="js/slider.js"></script>
+  </body>
+</html>

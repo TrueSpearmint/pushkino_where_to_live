@@ -1,0 +1,34 @@
+.legend {
+  position: absolute;
+  bottom: 30px;
+  right: 10px;
+  background: white;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  border: 1px solid #ccc;
+}
+#gradient {
+  width: 100%;
+  height: 20px;
+  background: linear-gradient(
+    to right,
+    #8b0a2b,
+    #d53e4f 10%,
+    #f46d43 20%,
+    #fdae61 30%,
+    #fee08b 40%,
+    #def084 50%,
+    #abdda4 60%,
+    #66c2a5 70%,
+    #3c9cd7 80%,
+    #a75fc4 90%
+  );
+  margin-bottom: 5px;
+}
+.labels {
+  display: flex;
+  justify-content: space-between;
+}
+.labels span {
+  font-size: 12px;
+}

@@ -1,0 +1,56 @@
+.enterpopup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* полупрозрачный фон */
+  z-index: 4; /* над боковым меню */
+  font-family: "Raleway", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 16px;
+  line-height: 22px;
+}
+.enterpopup-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  text-align: center; /* текст по ширине */
+  width: 60%; /* начальная ширина */
+  max-height: 80%;
+  overflow-y: auto;
+}
+.close-button {
+  cursor: pointer;
+  background-color: #4caf50;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  left: 45%;
+  height: 40px;
+  width: 80px;
+}
+
+/* Медиазапрос для мобильных устройств */
+@media (max-width: 768px) {
+  .enterpopup-content {
+    width: 85%;
+    max-height: 90%;
+    font-size: 14px;
+  }
+  .close-button {
+    left: 40%; /* позиционируем кнопку закрытия */
+  }
+  .enterpopup {
+    font-size: 13px;
+    line-height: 2vh;
+  }
+}
