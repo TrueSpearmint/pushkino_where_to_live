@@ -59,7 +59,7 @@
   /* Настройки отдельной риски относительно значений */
   position: relative;
 }
-/*
+/* 
 .slider-tick::after {
   content: "";
   position: absolute;
@@ -69,6 +69,4 @@
   width: 1px; /* толщина рисок */
   height: 10px; /* высота рисок */
   background-color: #4c4c4c; /* цвет рисок */
-}
-*/
-
+} */

@@ -30,34 +30,53 @@
     <div id="enterpopup" class="enterpopup">
       <div class="enterpopup-content">
         <p>
-          <b>Прочтите перед использованием.</b>
+          <b style="font-size: 120%">Прочтите перед использованием.</b>
           <br />
-          <br />Вас приветствует сайт <b>"Где в Пушкино жить лучше?" </b><br /><br />Обратите
-          внимание на название! Не "хорошо" или "комфортно", а "лучше". <br /><br />
-          Данный сайт позволяет вам сравнить условия проживания в разных микрорайонах и домах на
-          основе ряда показателей, представленных в меню слева. По своему усмотрению данным
-          показателям вы можете задать коэффициент значимости от 0 до 10, где:<br /><i>
-            0 – показатель не учитывается, 1 – минимальная важность, 10 – максимальная важность.</i
+          <br />Вас приветствует сайт <b>«Где в Пушкино жить лучше?» </b><br /><br />Обратите
+          внимание на название! Не «хорошо» или «комфортно», а «лучше». <br /><br />
+          Данный сайт позволяет вам сравнить условия проживания в разных районах и домах на основе
+          ряда показателей, представленных в меню слева. По своему усмотрению данным показателям вы
+          можете задать коэффициент значимости от 0 до 10, где:<br /><i>
+            0 — показатель не учитывается, 1–10 — чем выше значение, тем сильнее влияет
+            показатель.</i
           >
-          <br />В зависимости от проставленных вами значений итоговый результат изменится.<br /><br />
-          Пару слов о том, почему показатели выглядят именно так, как они выглядят. <br />Все
-          показатели, связанные с доступностью – это наличие определенных объектов поблизости.
-          Важную роль играет наличие объектов в радиусе 15 минут пешком. <br />Состояние жилищного
-          фонда – это показатель, основанный на возрасте дома и материалах, из которых он сделан.<br />
-          Показатели доступности Ростокино – соответственно скорость, с которой можно добраться до
-          остановки "МЦК Ростокино", но переведенная в баллы. <br /><br />Если вы хотите повысить
-          точность карты, то приглашаю вас к редактированию
-          <a href="https://www.openstreetmap.org">OpenStreetMap</a>. Подробнее об этом можно
-          прочитать <a href="https://habr.com/ru/companies/vk/articles/542522/">здесь</a>.
+          <br />В зависимости от проставленных вами значений итоговый результат изменится.<br /><u
+            >Учтите, что при проставлении всем показателям одного и того же коэффициента, не важно 1
+            это или 10 — результат будет одинаковым, так как их важность относительно другу друга не
+            меняется.</u
+          ><br />
         </p>
         <button class="close-button" onclick="hidePopup()">Закрыть</button>
+      </div>
+    </div>
+    <div id="enterpopup_1" class="enterpopup">
+      <div class="enterpopup-content">
+        <span>
+          Первые показатели, связанные с доступностью, отображают близость и количество исследуемых
+          объектов в радиусе 15 минут от дома, но с поправкой на наличие объектов чуть дальше этой
+          зоны.
+          <br />Информация о местоположении школ и детских садов взята с официальных источников, для
+          остальных объектов — с OpenStreetMap (подробнее о том, что это можно прочитать
+          <a href="https://habr.com/ru/companies/vk/articles/542522">здесь</a>).<br />
+          В качестве мест, пригодных для прогулок у воды, отобраны: озеро Травинское, часть реки
+          Серебрянка после ВНИИЛМа и берег Учи в Ивантеевском парке.<br /><br />Состояние жилищного
+          фонда — это показатель, основанный на возрасте дома и материалах, из которых он сделан.
+          Чем материалы комфортнее для жизни и дом новее, тем лучше.<br /><br />
+          Показатели доступности Ростокино — скорость, с которой можно добраться до автобусной
+          остановки «МЦК Ростокино» на машине или автобусах №451 и №317, но переведённая в баллы.
+          <br /><br />Более подробно о том, как составлены показатели, можно прочитать на
+          <a href="https://habr.com/ru/articles/833186">Хабре</a>.<br /><br />Дата последнего
+          обновления карты: 01.06.2024
+        </span>
+        <p></p>
+        <button class="close-button" onclick="hidePopupInfo()">Закрыть</button>
       </div>
     </div>
     <!-- Блок карты -->
     <div id="map"></div>
     <!-- Легенда -->
     <div id="legend" class="legend">
-      <div id="legend-text"><span>Качество городской среды в баллах для каждого дома</span></div>
+      <div id="legend-text"><span>Качество городской среды в баллах для жилых домов</span></div>
       <div id="gradient"></div>
       <div class="labels">
         <span>1</span>
@@ -80,9 +99,6 @@
         <span></span>
       </label>
       <ul class="menu_box">
-        <div class="update-button" onclick="updateMap()">
-          Нажмите, чтобы обновить карту с учётом коэффициентов ниже
-        </div>
         <li>
           <p class="slider-label">Доступность государственных школ</p>
           <div class="slider-container">
@@ -94,7 +110,7 @@
               step="1"
               class="slider"
               id="slider-1"
-              oninput="updateSchoolsCoefficient(this.value)"
+              oninput="updateSchoolsCoefficient(this.value); updateMap(); updateLegendText();"
             />
             <div class="slider-ticks" id="slider-ticks-1"></div>
           </div>
@@ -110,7 +126,7 @@
               step="1"
               class="slider"
               id="slider-2"
-              oninput="updateKindergartensCoefficient(this.value)"
+              oninput="updateKindergartensCoefficient(this.value); updateMap(); updateLegendText();"
             />
             <div class="slider-ticks" id="slider-ticks-2"></div>
           </div>
@@ -126,7 +142,7 @@
               step="1"
               class="slider"
               id="slider-3"
-              oninput="updateClinicsCoefficient(this.value)"
+              oninput="updateClinicsCoefficient(this.value); updateMap(); updateLegendText();"
             />
             <div class="slider-ticks" id="slider-ticks-3"></div>
           </div>
@@ -141,10 +157,10 @@
               value="1"
               step="1"
               class="slider"
-              id="slider-6"
-              oninput="updateCommerceCoefficient(this.value)"
+              id="slider-4"
+              oninput="updateCommerceCoefficient(this.value); updateMap(); updateLegendText();"
             />
-            <div class="slider-ticks" id="slider-ticks-6"></div>
+            <div class="slider-ticks" id="slider-ticks-4"></div>
           </div>
         </li>
         <li>
@@ -157,10 +173,10 @@
               value="1"
               step="1"
               class="slider"
-              id="slider-4"
-              oninput="updateFitnessCoefficient(this.value)"
+              id="slider-5"
+              oninput="updateFitnessCoefficient(this.value); updateMap(); updateLegendText();"
             />
-            <div class="slider-ticks" id="slider-ticks-4"></div>
+            <div class="slider-ticks" id="slider-ticks-5"></div>
           </div>
         </li>
         <li>
@@ -173,10 +189,10 @@
               value="1"
               step="1"
               class="slider"
-              id="slider-5"
-              oninput="updateWaterwalkCoefficient(this.value)"
+              id="slider-6"
+              oninput="updateWaterwalkCoefficient(this.value); updateMap(); updateLegendText();"
             />
-            <div class="slider-ticks" id="slider-ticks-5"></div>
+            <div class="slider-ticks" id="slider-ticks-6"></div>
           </div>
         </li>
         <hr />
@@ -191,7 +207,7 @@
               step="1"
               class="slider"
               id="slider-7"
-              oninput="updateBuildingsQualityCoefficient(this.value)"
+              oninput="updateBuildingsQualityCoefficient(this.value); updateMap(); updateLegendText();"
             />
             <div class="slider-ticks" id="slider-ticks-7"></div>
           </div>
@@ -208,7 +224,7 @@
               step="1"
               class="slider"
               id="slider-8"
-              oninput="updateRostokinoCarCoefficient(this.value)"
+              oninput="updateRostokinoCarCoefficient(this.value); updateMap(); updateLegendText();"
             />
             <div class="slider-ticks" id="slider-ticks-8"></div>
           </div>
@@ -223,13 +239,25 @@
               value="1"
               step="1"
               class="slider"
-              id="slider-8"
-              oninput="updateRostokinoBusCoefficient(this.value)"
+              id="slider-9"
+              oninput="updateRostokinoBusCoefficient(this.value); updateMap(); updateLegendText();"
             />
-            <div class="slider-ticks" id="slider-ticks-8"></div>
+            <div class="slider-ticks" id="slider-ticks-9"></div>
           </div>
         </li>
       </ul>
+      <div id="menu_header"></div>
+      <!-- Кнопка для получения справки -->
+      <div
+        id="info"
+        class="info-button"
+        onclick="showPopupInfo()"
+        onmouseover="showTooltip()"
+        onmouseout="hideTooltip()"
+      >
+        ?
+        <div id="tooltip" class="tooltip">Справка о показателях →</div>
+      </div>
     </div>
     <!-- Панель атрибутов -->
     <div id="attribution-block">
@@ -259,6 +287,14 @@
         // показать окно при загрузке страницы
         showPopup();
       };
+      function showPopupInfo() {
+        // функция показа стартоввого окна
+        document.getElementById("enterpopup_1").style.display = "block";
+      }
+      function hidePopupInfo() {
+        // функция сокрытия стартоввого окна
+        document.getElementById("enterpopup_1").style.display = "none";
+      }
 
       // Скрыть боковое меню на маленьких экранах
       document.addEventListener("DOMContentLoaded", function () {
@@ -276,6 +312,7 @@
         style: "mapbox://styles/truespearmint/clwdyudtl00as01pn8hxx5cy5",
         center: [37.847164, 56.011318],
         zoom: 11.7,
+        minZoom: 7,
         maxBounds: [
           [35.579062, 54.461946],
           [39.876909, 57.567873],
@@ -455,7 +492,7 @@
                 ["linear"],
                 ["get", "average_value"],
                 0,
-                ["rgba", 0, 0, 0, 0.0], // скрытие гексагонов со значеним 0
+                ["rgba", 0, 0, 0, 0.0], // скрытие гексагонов со значением 0
                 1,
                 "#8b0a2b",
                 10,
@@ -858,8 +895,12 @@
     </script>
     <!-- Панель controls -->
     <script src="js/controlsModified.js"></script>
+    <!-- tooltips для справки -->
+    <script src="js/tooltips.js"></script>
     <!-- Слайдер -->
     <script src="js/updateCoefficient.js"></script>
     <script src="js/slider.js"></script>
+    <!-- Обновление текста легенды -->
+    <script src="js/updateLegendText.js"></script>
   </body>
 </html>
